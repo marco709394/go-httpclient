@@ -41,6 +41,7 @@ const (
 	// CURL like OPT
 	OPT_AUTOREFERER       = 58
 	OPT_FOLLOWLOCATION    = 52
+	OPT_LOCAL_ADDR        = 77
 	OPT_CONNECTTIMEOUT    = 78
 	OPT_CONNECTTIMEOUT_MS = 156
 	OPT_MAXREDIRS         = 68
@@ -63,6 +64,7 @@ const (
 var CONST = map[string]int{
 	"OPT_AUTOREFERER":       58,
 	"OPT_FOLLOWLOCATION":    52,
+	"OPT_LOCAL_ADDR":        77,
 	"OPT_CONNECTTIMEOUT":    78,
 	"OPT_CONNECTTIMEOUT_MS": 156,
 	"OPT_MAXREDIRS":         68,
@@ -93,6 +95,7 @@ var defaultOptions = map[int]interface{}{
 // These options affect transport, transport may not be reused if you change any
 // of these options during a request.
 var transportOptions = []int{
+	OPT_LOCAL_ADDR,
 	OPT_CONNECTTIMEOUT,
 	OPT_CONNECTTIMEOUT_MS,
 	OPT_PROXYTYPE,
@@ -212,27 +215,21 @@ func prepareTransport(options map[int]interface{}) (http.RoundTripper, error) {
 		connectTimeoutMS = timeoutMS
 	}
 
-	transport.Dial = func(network, addr string) (net.Conn, error) {
-		var conn net.Conn
-		var err error
-		if connectTimeoutMS > 0 {
-			conn, err = net.DialTimeout(network, addr, time.Duration(connectTimeoutMS)*time.Millisecond)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			conn, err = net.Dial(network, addr)
-			if err != nil {
-				return nil, err
-			}
-		}
-
-		if timeoutMS > 0 {
-			conn.SetDeadline(time.Now().Add(time.Duration(timeoutMS) * time.Millisecond))
-		}
-
-		return conn, nil
+	dialer := &net.Dialer{
+		KeepAlive: time.Duration(30) * time.Second,
+		Timeout:   time.Duration(connectTimeoutMS) * time.Millisecond,
+		Deadline:  time.Now().Add(time.Duration(timeoutMS) * time.Millisecond),
 	}
+
+	if localAddr_, ok := options[OPT_LOCAL_ADDR]; ok {
+		if localAddr, ok := localAddr_.(net.Addr); ok {
+			dialer.LocalAddr = localAddr
+		} else {
+			return nil, fmt.Errorf("OPT_LOCAL_ADDR must be net.Addr")
+		}
+	}
+
+	transport.Dial = dialer.Dial
 
 	// proxy
 	if proxyFunc_, ok := options[OPT_PROXY_FUNC]; ok {
@@ -622,6 +619,20 @@ func (this *HttpClient) Delete(url string, params map[string]string) (*Response,
 	return this.Do("DELETE", url, nil, nil)
 }
 
+func (this *HttpClient) Put(url string, params map[string]string) (*Response,
+	error) {
+	// Post with files should be sent as multipart.
+	if checkParamFile(params) {
+		return this.PostMultipart(url, params)
+	}
+
+	headers := make(map[string]string)
+	headers["Content-Type"] = "application/x-www-form-urlencoded; charset=UTF-8"
+	body := strings.NewReader(paramsToString(params))
+
+	return this.Do("PUT", url, headers, body)
+}
+
 // The POST request
 //
 // With multipart set to true, the request will be encoded as
@@ -637,7 +648,7 @@ func (this *HttpClient) Post(url string, params map[string]string) (*Response,
 	}
 
 	headers := make(map[string]string)
-	headers["Content-Type"] = "application/x-www-form-urlencoded"
+	headers["Content-Type"] = "application/x-www-form-urlencoded; charset=UTF-8"
 	body := strings.NewReader(paramsToString(params))
 
 	return this.Do("POST", url, headers, body)
