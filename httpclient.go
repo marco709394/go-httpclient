@@ -217,8 +217,14 @@ func prepareTransport(options map[int]interface{}) (http.RoundTripper, error) {
 
 	dialer := &net.Dialer{
 		KeepAlive: time.Duration(30) * time.Second,
-		Timeout:   time.Duration(connectTimeoutMS) * time.Millisecond,
-		Deadline:  time.Now().Add(time.Duration(timeoutMS) * time.Millisecond),
+	}
+
+	if connectTimeoutMS > 0 {
+		dialer.Timeout = time.Duration(connectTimeoutMS) * time.Millisecond
+	}
+
+	if timeoutMS > 0 {
+		dialer.Deadline = time.Now().Add(time.Duration(timeoutMS) * time.Millisecond)
 	}
 
 	if localAddr_, ok := options[OPT_LOCAL_ADDR]; ok {
