@@ -132,7 +132,7 @@ func (this *Response) ReadAll() ([]byte, error) {
 		reader = this.Body
 	}
 
-	defer reader.Close()
+	defer this.Body.Close()
 	return ioutil.ReadAll(reader)
 }
 
