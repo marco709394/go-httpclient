@@ -5,6 +5,7 @@
 package httpclient
 
 import (
+	"crypto/tls"
 	"fmt"
 
 	"bytes"
@@ -179,7 +180,10 @@ func prepareRequest(method string, url_ string, headers map[string]string,
 //
 // Handles timemout, proxy and maybe other transport related options here.
 func prepareTransport(options map[int]interface{}) (http.RoundTripper, error) {
-	transport := &http.Transport{}
+	transport := &http.Transport{
+		TLSClientConfig:   &tls.Config{InsecureSkipVerify: true},
+		DisableKeepAlives: false,
+	}
 
 	connectTimeoutMS := 0
 
