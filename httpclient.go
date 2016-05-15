@@ -610,7 +610,7 @@ func (this *HttpClient) DoWithParams(method string, url string, urlParams map[st
 	addParams(url, urlParams)
 
 	var body io.Reader
-	if len(contentParams) > 0 {
+	if contentParams != nil {
 		if headers == nil {
 			headers = make(map[string]string)
 		}
