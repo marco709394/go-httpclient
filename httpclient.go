@@ -605,6 +605,22 @@ func (this *HttpClient) Do(method string, url string, headers map[string]string,
 	return &Response{res}, err
 }
 
+func (this *HttpClient) DoWithParams(method string, url string, urlParams map[string]string, headers map[string]string,
+	contentParams map[string]string) (*Response, error) {
+	addParams(url, urlParams)
+
+	var body io.Reader
+	if len(contentParams) > 0 {
+		if headers == nil {
+			headers = make(map[string]string)
+		}
+		headers["Content-Type"] = "application/x-www-form-urlencoded; charset=UTF-8"
+		body = strings.NewReader(paramsToString(contentParams))
+	}
+
+	return this.Do(method, url, headers, body)
+}
+
 // The HEAD request
 func (this *HttpClient) Head(url string, params map[string]string) (*Response,
 	error) {
