@@ -607,7 +607,7 @@ func (this *HttpClient) Do(method string, url string, headers map[string]string,
 
 func (this *HttpClient) DoWithParams(method string, url string, urlParams map[string]string, headers map[string]string,
 	contentParams map[string]string) (*Response, error) {
-	addParams(url, urlParams)
+	url = addParams(url, urlParams)
 
 	var body io.Reader
 	if contentParams != nil {
