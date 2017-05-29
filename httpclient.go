@@ -59,6 +59,7 @@ const (
 	OPT_REDIRECT_POLICY = 100000
 	OPT_PROXY_FUNC      = 100001
 	OPT_DEBUG           = 100002
+	OPT_MAX_IDLECONN    = 100003
 )
 
 // String map of options
@@ -81,6 +82,7 @@ var CONST = map[string]int{
 	"OPT_REDIRECT_POLICY": 100000,
 	"OPT_PROXY_FUNC":      100001,
 	"OPT_DEBUG":           100002,
+	"OPT_MAX_IDLECONN":    100003,
 }
 
 // Default options for any clients.
@@ -183,6 +185,10 @@ func prepareTransport(options map[int]interface{}) (http.RoundTripper, error) {
 	transport := &http.Transport{
 		TLSClientConfig:   &tls.Config{InsecureSkipVerify: true},
 		DisableKeepAlives: false,
+	}
+
+	if conn, ok := options[OPT_MAX_IDLECONN]; ok {
+		transport.MaxIdleConnsPerHost = conn.(int)
 	}
 
 	connectTimeoutMS := 0
