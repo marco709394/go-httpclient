@@ -472,6 +472,30 @@ func (this *HttpClient) reset() {
 	}
 }
 
+// Specify an option of the current request.
+func (this *HttpClient) OverrideOption(k int, v interface{}) *HttpClient {
+	this.Begin()
+
+	if this.Options == nil {
+		this.Options = make(map[int]interface{})
+	}
+	this.Options[k] = v
+
+	// Conditions we cann't reuse the transport.
+	if hasOption(k, transportOptions) {
+		this.reuseTransport = false
+	}
+
+	// Conditions we cann't reuse the cookie jar.
+	if hasOption(k, jarOptions) {
+		this.reuseJar = false
+	}
+
+	this.lock.Unlock()
+
+	return this
+}
+
 // Temporarily specify an option of the current request.
 func (this *HttpClient) WithOption(k int, v interface{}) *HttpClient {
 	if this.oneTimeOptions == nil {
@@ -480,12 +504,12 @@ func (this *HttpClient) WithOption(k int, v interface{}) *HttpClient {
 	this.oneTimeOptions[k] = v
 
 	// Conditions we cann't reuse the transport.
-	if !hasOption(k, transportOptions) {
+	if hasOption(k, transportOptions) {
 		this.reuseTransport = false
 	}
 
 	// Conditions we cann't reuse the cookie jar.
-	if !hasOption(k, jarOptions) {
+	if hasOption(k, jarOptions) {
 		this.reuseJar = false
 	}
 
