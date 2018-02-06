@@ -388,6 +388,7 @@ func NewHttpClient() *HttpClient {
 	c := &HttpClient{
 		reuseTransport: true,
 		reuseJar:       true,
+		lock: 			new(sync.Mutex),
 	}
 
 	return c
@@ -456,9 +457,6 @@ func (this *HttpClient) Defaults(defaults Map) *HttpClient {
 // Begin marks the begining of a request, it's necessary for concurrent
 // requests.
 func (this *HttpClient) Begin() *HttpClient {
-	if this.lock == nil {
-		this.lock = new(sync.Mutex)
-	}
 	this.lock.Lock()
 
 	return this
@@ -474,9 +472,7 @@ func (this *HttpClient) reset() {
 
 	// nil means the Begin has not been called, asume requests are not
 	// concurrent.
-	if this.lock != nil {
-		this.lock.Unlock()
-	}
+	this.lock.Unlock()
 }
 
 // Specify an option of the current request.
