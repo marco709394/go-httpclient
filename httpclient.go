@@ -52,6 +52,7 @@ const (
 	OPT_COOKIEJAR         = 10082
 	OPT_INTERFACE         = 10062
 	OPT_PROXY             = 10004
+	OPT_PROXY_HEADER      = 10005
 	OPT_REFERER           = 10016
 	OPT_USERAGENT         = 10018
 
@@ -76,6 +77,7 @@ var CONST = map[string]int{
 	"OPT_COOKIEJAR":         10082,
 	"OPT_INTERFACE":         10062,
 	"OPT_PROXY":             10004,
+	"OPT_PROXY_HEADER":      10005,
 	"OPT_REFERER":           10016,
 	"OPT_USERAGENT":         10018,
 
@@ -107,6 +109,7 @@ var transportOptions = []int{
 	OPT_INTERFACE,
 	OPT_PROXY,
 	OPT_PROXY_FUNC,
+	OPT_PROXY_HEADER,
 }
 
 // These options affect cookie jar, jar may not be reused if you change any of
@@ -293,6 +296,10 @@ func prepareTransport(options map[int]interface{}) (http.RoundTripper, error) {
 			}
 			transport.Proxy = http.ProxyURL(proxyUrl)
 		}
+	}
+
+	if proxyheader_, ok := options[OPT_PROXY_HEADER]; ok {
+		transport.ProxyConnectHeader = proxyheader_.(http.Header)
 	}
 
 	return transport, nil
