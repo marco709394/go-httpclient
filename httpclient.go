@@ -388,7 +388,7 @@ func NewHttpClient() *HttpClient {
 	c := &HttpClient{
 		reuseTransport: true,
 		reuseJar:       true,
-		lock: 			new(sync.Mutex),
+		lock:           new(sync.Mutex),
 	}
 
 	return c
@@ -633,6 +633,9 @@ func (this *HttpClient) Do(method string, url string, headers map[string]string,
 		}
 	}
 
+	if host := headers["Host"]; host != "" {
+		req.Host = host
+	}
 	res, err := c.Do(req)
 
 	return &Response{res}, err
