@@ -259,12 +259,11 @@ func prepareTransport(options map[int]interface{}) (http.RoundTripper, error) {
 					return nil, err
 				}
 
-				if proxyType != PROXY_HTTP {
-					return nil, fmt.Errorf("only PROXY_HTTP is currently supported")
+				if proxyType == PROXY_HTTP {
+					u_ = "http://" + u_
+				} else {
+					u_ = "socks5://" + u_
 				}
-
-				u_ = "http://" + u_
-
 				u, err := url.Parse(u_)
 
 				if err != nil {
@@ -279,8 +278,8 @@ func prepareTransport(options map[int]interface{}) (http.RoundTripper, error) {
 	} else {
 		var proxytype int
 		if proxytype_, ok := options[OPT_PROXYTYPE]; ok {
-			if proxytype, ok = proxytype_.(int); !ok || proxytype != PROXY_HTTP {
-				return nil, fmt.Errorf("OPT_PROXYTYPE must be int, and only PROXY_HTTP is currently supported")
+			if proxytype, ok = proxytype_.(int); !ok {
+				return nil, fmt.Errorf("OPT_PROXYTYPE must be int")
 			}
 		}
 
@@ -289,7 +288,11 @@ func prepareTransport(options map[int]interface{}) (http.RoundTripper, error) {
 			if proxy, ok = proxy_.(string); !ok {
 				return nil, fmt.Errorf("OPT_PROXY must be string")
 			}
-			proxy = "http://" + proxy
+			if proxytype == PROXY_HTTP {
+				proxy = "http://" + proxy
+			} else {
+				proxy = "socks5://" + proxy
+			}
 			proxyUrl, err := url.Parse(proxy)
 			if err != nil {
 				return nil, err
