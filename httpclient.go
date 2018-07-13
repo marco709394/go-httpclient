@@ -208,36 +208,12 @@ func prepareTransport(options map[int]interface{}) (http.RoundTripper, error) {
 		}
 	}
 
-	timeoutMS := 0
-
-	if timeoutMS_, ok := options[OPT_TIMEOUT_MS]; ok {
-		if timeoutMS, ok = timeoutMS_.(int); !ok {
-			return nil, fmt.Errorf("OPT_TIMEOUT_MS must be int")
-		}
-	} else if timeout_, ok := options[OPT_TIMEOUT]; ok {
-		if timeout, ok := timeout_.(int); ok {
-			timeoutMS = timeout * 1000
-		} else {
-			return nil, fmt.Errorf("OPT_TIMEOUT must be int")
-		}
-	}
-
-	// fix connect timeout(important, or it might cause a long time wait during
-	//connection)
-	if timeoutMS > 0 && (connectTimeoutMS > timeoutMS || connectTimeoutMS == 0) {
-		connectTimeoutMS = timeoutMS
-	}
-
 	dialer := &net.Dialer{
 		KeepAlive: time.Duration(30) * time.Second,
 	}
 
 	if connectTimeoutMS > 0 {
 		dialer.Timeout = time.Duration(connectTimeoutMS) * time.Millisecond
-	}
-
-	if timeoutMS > 0 {
-		dialer.Deadline = time.Now().Add(time.Duration(timeoutMS) * time.Millisecond)
 	}
 
 	if localAddr_, ok := options[OPT_LOCAL_ADDR]; ok {
@@ -613,6 +589,23 @@ func (this *HttpClient) Do(method string, url string, headers map[string]string,
 		Transport:     transport,
 		CheckRedirect: redirect,
 		Jar:           jar,
+	}
+
+	timeoutMS := 0
+	if timeoutMS_, ok := options[OPT_TIMEOUT_MS]; ok {
+		if timeoutMS, ok = timeoutMS_.(int); !ok {
+			return nil, fmt.Errorf("OPT_TIMEOUT_MS must be int")
+		}
+	} else if timeout_, ok := options[OPT_TIMEOUT]; ok {
+		if timeout, ok := timeout_.(int); ok {
+			timeoutMS = timeout * 1000
+		} else {
+			return nil, fmt.Errorf("OPT_TIMEOUT must be int")
+		}
+	}
+
+	if timeoutMS > 0 {
+		c.Timeout = time.Duration(timeoutMS) * time.Millisecond
 	}
 
 	req, err := prepareRequest(method, url, headers, body, options)
