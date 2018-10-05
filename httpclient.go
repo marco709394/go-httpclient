@@ -646,7 +646,7 @@ func (this *HttpClient) DoWithParams(method string, url string, urlParams map[st
 		if headers == nil {
 			headers = make(map[string]string)
 		}
-		headers["Content-Type"] = "application/x-www-form-urlencoded; charset=UTF-8"
+		headers["Content-Type"] = "application/x-www-form-urlencoded"
 		body = strings.NewReader(paramsToString(contentParams))
 	}
 
