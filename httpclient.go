@@ -685,7 +685,7 @@ func (this *HttpClient) Put(url string, params map[string]string) (*Response,
 	}
 
 	headers := make(map[string]string)
-	headers["Content-Type"] = "application/x-www-form-urlencoded; charset=UTF-8"
+	headers["Content-Type"] = "application/x-www-form-urlencoded"
 	body := strings.NewReader(paramsToString(params))
 
 	return this.Do("PUT", url, headers, body)
@@ -706,7 +706,7 @@ func (this *HttpClient) Post(url string, params map[string]string) (*Response,
 	}
 
 	headers := make(map[string]string)
-	headers["Content-Type"] = "application/x-www-form-urlencoded; charset=UTF-8"
+	headers["Content-Type"] = "application/x-www-form-urlencoded"
 	body := strings.NewReader(paramsToString(params))
 
 	return this.Do("POST", url, headers, body)
