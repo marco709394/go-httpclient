@@ -175,7 +175,7 @@ func prepareRequest(method string, url_ string, headers map[string]string,
 	}
 
 	for k, v := range headers {
-		req.Header.Set(k, v)
+		req.Header[k] = []string{v}
 	}
 
 	return req, nil
@@ -323,12 +323,14 @@ func prepareRedirect(options map[int]interface{}) (func(req *http.Request, via [
 				}
 			}
 
-			last := via[len(via)-1]
+			//last := via[len(via)-1]
 			// keep necessary headers
 			// TODO: pass all headers or add other headers?
-			if useragent := last.Header.Get("User-Agent"); useragent != "" {
-				req.Header.Set("User-Agent", useragent)
-			}
+			/*
+				if useragent := last.Header.Get("User-Agent"); useragent != "" {
+					req.Header.Set("User-Agent", useragent)
+				}
+			*/
 
 			return nil
 		}
