@@ -557,9 +557,7 @@ func (this *HttpClient) Do(method string, url string, headers map[string]string,
 			return nil, err
 		}
 
-		if this.reuseTransport {
-			this.transport = transport
-		}
+		this.transport = transport
 	} else {
 		transport = this.transport
 	}
